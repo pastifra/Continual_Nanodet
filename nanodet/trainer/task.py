@@ -158,7 +158,7 @@ class TrainingTask(LightningModule):
             else results
         )
         if all_results:
-            eval_results = self.evaluator.evaluate(
+            eval_results, table = self.evaluator.evaluate(
                 all_results, self.cfg.save_dir, rank=self.local_rank
             )
             metric = eval_results[self.cfg.evaluator.save_key]
@@ -179,6 +179,8 @@ class TrainingTask(LightningModule):
                         f.write("Epoch:{}\n".format(self.current_epoch + 1))
                         for k, v in eval_results.items():
                             f.write("{}: {}\n".format(k, v))
+                        f.write(table)
+
             else:
                 warnings.warn(
                     "Warning! Save_key is not in eval results! Only save model last!"
@@ -206,13 +208,14 @@ class TrainingTask(LightningModule):
             json.dump(res_json, open(json_path, "w"))
 
             if self.cfg.test_mode == "val":
-                eval_results = self.evaluator.evaluate(
+                eval_results, table = self.evaluator.evaluate(
                     all_results, self.cfg.save_dir, rank=self.local_rank
                 )
                 txt_path = os.path.join(self.cfg.save_dir, "eval_results.txt")
                 with open(txt_path, "a") as f:
                     for k, v in eval_results.items():
                         f.write("{}: {}\n".format(k, v))
+                    f.write(table)
         else:
             self.logger.info("Skip test on rank {}".format(self.local_rank))
 

@@ -64,15 +64,22 @@ class XMLDataset(CocoDataset):
         :param ann_path:
         :return:
         """
+        orig_class_names = ["aeroplane", "bicycle", "bird", "boat", "bottle", "bus", "car", "cat", "chair", "cow", "diningtable", "dog", "horse", "motorbike", "person", "pottedplant", "sheep", "sofa", "train", "tvmonitor"]
         logging.info("loading annotations into memory...")
         tic = time.time()
         ann_file_names = get_file_list(ann_path, type=".xml")
         logging.info("Found {} annotation files.".format(len(ann_file_names)))
         image_info = []
         categories = []
+        coco_categories = []
         annotations = []
         for idx, supercat in enumerate(self.class_names):
+            class_n = orig_class_names.index(supercat)
             categories.append(
+                {"supercategory": supercat, "id": class_n + 1, "name": supercat}
+            )
+        for idx, supercat in enumerate(orig_class_names):
+            coco_categories.append(
                 {"supercategory": supercat, "id": idx + 1, "name": supercat}
             )
         logging.warning("WARNING! Keeping only annotations of these categories {}! ".format(categories))
@@ -123,7 +130,7 @@ class XMLDataset(CocoDataset):
 
         coco_dict = {
             "images": image_info,
-            "categories": categories,
+            "categories": coco_categories, #Returns all the learned classes!
             "annotations": annotations,
         }
         logging.info(

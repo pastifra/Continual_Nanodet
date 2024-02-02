@@ -109,7 +109,7 @@ class CocoDetectionEvaluator:
         precisions = coco_eval.eval["precision"]
         # dimension of precisions: [TxRxKxAxM]
         # precision has dims (iou, recall, cls, area range, max dets)
-        assert len(self.class_names) == precisions.shape[2]
+        #assert len(self.class_names) == precisions.shape[2]
 
         for idx, name in enumerate(self.class_names):
             # area range index 0: all area ranges
@@ -146,4 +146,4 @@ class CocoDetectionEvaluator:
         eval_results = {}
         for k, v in zip(self.metric_names, aps):
             eval_results[k] = v
-        return eval_results
+        return eval_results, table

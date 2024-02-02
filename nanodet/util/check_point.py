@@ -43,11 +43,12 @@ def load_model_weight(model, checkpoint, logger):
         if k in model_state_dict:
             if state_dict[k].shape != model_state_dict[k].shape:
                 logger.log(
-                    "Skip loading parameter {}, required shape{}, "
+                    "Modifying loading parameter {}, required shape{}, "
                     "loaded shape{}.".format(
                         k, model_state_dict[k].shape, state_dict[k].shape
                     )
                 )
+                model_state_dict[k][:state_dict[k].shape[0], ...] = state_dict[k] ##Copying only part of the tensor becauase of the mismatch in shape
                 state_dict[k] = model_state_dict[k]
         else:
             logger.log("Drop parameter {}.".format(k))
