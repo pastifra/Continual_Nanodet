@@ -1,9 +1,6 @@
 #Config File example
 save_dir: /home/pasti/PycharmProjects/nanodet_cl/eclod/
 model:
-  weight_averager:
-    name: ExpMovingAverager
-    decay: 0.9998
   arch:
     name: NanoDetPlus
     detach_epoch: 10
@@ -45,15 +42,7 @@ model:
           name: GIoULoss
           loss_weight: 2.0
     # Auxiliary head, only use in training time.
-    aux_head:
-      name: SimpleConvHead
-      num_classes: 15
-      input_channel: 192
-      feat_channels: 192
-      stacked_convs: 4
-      strides: [8, 16, 32, 64]
-      activation: LeakyReLU
-      reg_max: 7
+
 
 class_names: &class_names ["aeroplane", "bicycle", "bird", "boat", "bottle", "bus", "car", "cat", "chair", "cow", "diningtable", "dog", "horse", "motorbike", "person"]  #Please fill in the category names (not include background category)
 data:
