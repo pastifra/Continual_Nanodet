@@ -92,8 +92,8 @@ def main(args):
     trainer = pl.Trainer(
         default_root_dir=cfg.save_dir,
         accelerator=accelerator,
-        devices=devices,
-        log_every_n_steps=cfg.log.interval,
+        devices=[2],
+        log_every_n_steps=1,
         num_sanity_val_steps=0,
         logger=logger,
     )

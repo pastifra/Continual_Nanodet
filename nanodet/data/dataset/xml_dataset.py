@@ -96,11 +96,12 @@ class XMLDataset(CocoDataset):
                 "width": width,
                 "id": idx + 1,
             }
-            image_info.append(info)
+            keep_img_info = False
             for _object in root.findall("object"):
                 category = _object.find("name").text
                 if category not in self.class_names:
                     continue
+                keep_img_info = True
                 for cat in categories:
                     if category == cat["name"]:
                         cat_id = cat["id"]
@@ -127,7 +128,8 @@ class XMLDataset(CocoDataset):
                 }
                 annotations.append(ann)
                 ann_id += 1
-
+            if keep_img_info:
+                image_info.append(info)
         coco_dict = {
             "images": image_info,
             "categories": coco_categories, #Returns all the learned classes!
@@ -136,6 +138,7 @@ class XMLDataset(CocoDataset):
         logging.info(
             "Load {} xml files and {} boxes".format(len(image_info), len(annotations))
         )
+        print("Load {} xml files and {} boxes".format(len(image_info), len(annotations)))
         logging.info("Done (t={:0.2f}s)".format(time.time() - tic))
         return coco_dict
 

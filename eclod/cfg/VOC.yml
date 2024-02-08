@@ -102,4 +102,4 @@ evaluator:
   save_key: mAP
 
 log:
-  interval: 10
+  interval: 25
