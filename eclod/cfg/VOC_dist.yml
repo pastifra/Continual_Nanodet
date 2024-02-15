@@ -18,7 +18,7 @@ model:
       use_depthwise: True
       activation: LeakyReLU
     head:
-      name: NanoDetPlusHead
+      name: NanoDetPlusDistHead
       num_classes: 15
       input_channel: 96
       feat_channels: 96
@@ -29,9 +29,10 @@ model:
       reg_max: 7
       norm_cfg:
         type: BN
+      class_x : 15 #To filter losses based on classes
       loss:
-        loss_qfl:
-          name: QualityFocalLoss
+        loss_dqfl:
+          name: DistQualityFocalLoss
           use_sigmoid: True
           beta: 2.0
           loss_weight: 1.0

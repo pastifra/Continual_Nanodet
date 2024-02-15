@@ -24,6 +24,7 @@ from nanodet.data.collate import naive_collate
 from nanodet.data.dataset import build_dataset
 from nanodet.evaluator import build_evaluator
 from nanodet.trainer.task import TrainingTask
+from nanodet.trainer.dist_task import DistTrainingTask
 from nanodet.util import (
     NanoDetLightningLogger,
     cfg,
@@ -72,7 +73,7 @@ def main(args):
     evaluator = build_evaluator(cfg.evaluator, val_dataset)
 
     logger.info("Creating model...")
-    task = TrainingTask(cfg, evaluator)
+    task = DistTrainingTask(cfg, evaluator)
 
     ckpt = torch.load(args.model)
     if "pytorch-lightning_version" not in ckpt:

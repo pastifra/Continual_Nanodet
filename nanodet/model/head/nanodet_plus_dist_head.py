@@ -8,7 +8,7 @@ import torch.nn as nn
 from nanodet.util import bbox2distance, distance2bbox, multi_apply, overlay_bbox_cv
 
 from ...data.transform.warp import warp_boxes
-from ..loss.gfocal_loss import DistributionFocalLoss, QualityFocalLoss
+from ..loss.gfocal_loss import DistributionFocalLoss, QualityFocalLoss, DistQualityFocalLoss
 from ..loss.iou_loss import GIoULoss
 from ..module.conv import ConvModule, DepthwiseConvModule
 from ..module.init_weights import normal_init
@@ -17,7 +17,7 @@ from .assigner.dsl_assigner import DynamicSoftLabelAssigner
 from .gfl_head import Integral, reduce_mean
 
 
-class NanoDetPlusHead(nn.Module):
+class NanoDetPlusDistHead(nn.Module):
     """Detection head used in NanoDet-Plus.
 
     Args:
@@ -55,9 +55,10 @@ class NanoDetPlusHead(nn.Module):
         reg_max=7,
         activation="LeakyReLU",
         assigner_cfg=dict(topk=13),
+        class_x=None,
         **kwargs
     ):
-        super(NanoDetPlusHead, self).__init__()
+        super(NanoDetPlusDistHead, self).__init__()
         self.num_classes = num_classes
         self.in_channels = input_channel
         self.feat_channels = feat_channels
@@ -67,17 +68,19 @@ class NanoDetPlusHead(nn.Module):
         self.reg_max = reg_max
         self.activation = activation
         self.ConvModule = ConvModule if conv_type == "Conv" else DepthwiseConvModule
-
+        self.class_x = class_x
         self.loss_cfg = loss
         self.norm_cfg = norm_cfg
 
         self.assigner = DynamicSoftLabelAssigner(**assigner_cfg)
         self.distribution_project = Integral(self.reg_max)
 
-        self.loss_qfl = QualityFocalLoss(
-            beta=self.loss_cfg.loss_qfl.beta,
-            loss_weight=self.loss_cfg.loss_qfl.loss_weight,
+        self.loss_dqfl = DistQualityFocalLoss(
+            beta=self.loss_cfg.loss_dqfl.beta,
+            loss_weight=self.loss_cfg.loss_dqfl.loss_weight,
+            class_x=self.class_x,
         )
+
         self.loss_dfl = DistributionFocalLoss(
             loss_weight=self.loss_cfg.loss_dfl.loss_weight
         )
@@ -255,13 +258,14 @@ class NanoDetPlusHead(nn.Module):
         cls_preds = cls_preds.reshape(-1, self.num_classes)
         reg_preds = reg_preds.reshape(-1, 4 * (self.reg_max + 1))
         decoded_bboxes = decoded_bboxes.reshape(-1, 4)
-        loss_qfl = self.loss_qfl(
+        loss_qfl = self.loss_dqfl(
             cls_preds,
             (labels, label_scores),
             weight=label_weights,
             avg_factor=num_total_samples,
         )
 
+        # noinspection PyTypeChecker
         pos_inds = torch.nonzero(
             (labels >= 0) & (labels < self.num_classes), as_tuple=False
         ).squeeze(1)
@@ -269,6 +273,11 @@ class NanoDetPlusHead(nn.Module):
         if len(pos_inds) > 0:
             weight_targets = cls_preds[pos_inds].detach().sigmoid().max(dim=1)[0]
             bbox_avg_factor = max(reduce_mean(weight_targets.sum()).item(), 1.0)
+
+            if self.class_x is not None:
+                mask = (labels[pos_inds] != self.class_x)
+                weight_targets[mask] = 0
+
             loss_bbox = self.loss_bbox(
                 decoded_bboxes[pos_inds],
                 bbox_targets[pos_inds],

@@ -4,6 +4,7 @@ from .gfl_head import GFLHead
 from .nanodet_head import NanoDetHead
 from .nanodet_plus_head import NanoDetPlusHead
 from .simple_conv_head import SimpleConvHead
+from .nanodet_plus_dist_head import NanoDetPlusDistHead
 
 
 def build_head(cfg):
@@ -15,6 +16,8 @@ def build_head(cfg):
         return NanoDetHead(**head_cfg)
     elif name == "NanoDetPlusHead":
         return NanoDetPlusHead(**head_cfg)
+    elif name == "NanoDetPlusDistHead":
+        return NanoDetPlusDistHead(**head_cfg)
     elif name == "SimpleConvHead":
         return SimpleConvHead(**head_cfg)
     else:
