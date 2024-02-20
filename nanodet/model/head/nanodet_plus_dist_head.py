@@ -274,10 +274,6 @@ class NanoDetPlusDistHead(nn.Module):
             weight_targets = cls_preds[pos_inds].detach().sigmoid().max(dim=1)[0]
             bbox_avg_factor = max(reduce_mean(weight_targets.sum()).item(), 1.0)
 
-            if self.class_x is not None:
-                mask = (labels[pos_inds] != self.class_x)
-                weight_targets[mask] = 0
-
             loss_bbox = self.loss_bbox(
                 decoded_bboxes[pos_inds],
                 bbox_targets[pos_inds],

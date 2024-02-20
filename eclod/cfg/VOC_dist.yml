@@ -94,7 +94,7 @@ schedule:
   total_epochs: 100
   lr_schedule:
     name: CosineAnnealingLR
-    T_max: 300
+    T_max: 100
     eta_min: 0.00005
   val_intervals: 75
 grad_clip: 35

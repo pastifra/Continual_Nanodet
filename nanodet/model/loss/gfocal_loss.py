@@ -98,13 +98,6 @@ def dist_quality_focal_loss(pred, target, beta=2.0, class_x=None):
     loss[pos, pos_label] = F.binary_cross_entropy_with_logits(
         pred[pos, pos_label], score[pos], reduction="none"
     ) * scale_factor.abs().pow(beta)
-
-    '''
-    # If class_x is specified, set the loss for all other classes to zero
-    if class_x is not None:
-        mask = (pos_label != class_x)
-        loss[pos[mask], pos_label[mask]] = 0
-    '''
     loss = loss.sum(dim=1, keepdim=False)
     return loss
 

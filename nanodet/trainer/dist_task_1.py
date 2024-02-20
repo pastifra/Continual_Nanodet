@@ -81,76 +81,23 @@ class DistTrainingTask(LightningModule):
 
         stud_feat = self.model.backbone(img)
         stud_fpn_feat = self.model.fpn(stud_feat)
-
-        #Extract Head Conv towers outputs
-        stud_int_head_out = []
-        for feat, cls_convs in zip(stud_fpn_feat, self.model.head.cls_convs):
-            for conv in cls_convs:
-                feat = conv(feat)
-            stud_int_head_out.append(feat)
-
-        #Extract Head cls outputs
         stud_head_out = self.model.head(stud_fpn_feat)
-        stud_cls_preds, stud_reg_preds = stud_head_out.split(
-            [20, 4 * (7 + 1)], dim=-1
-        )
-
-        #Extract only the output realative to the last continually learned classes
-        if self.n_last_learned_classes > 0:
-            stud_cls_preds_new_classes = stud_cls_preds[:, :, self.n_val_classes - self.n_last_learned_classes - 1:self.n_val_classes - 1]
-
-        #To compute total Cls loss, proved ineffective in experiments
-        stud_cls_preds = stud_cls_preds[:, :, :self.n_val_classes - 1]
-        if self.n_val_classes < 20:
-            stud_cls_preds1 = stud_cls_preds[:, :, self.n_val_classes:]
-            stud_cls_preds = torch.cat((stud_cls_preds, stud_cls_preds1), dim=-1)
-
 
         ### NANODET LOSS ###
         loss, loss_states = self.model.head.loss(stud_head_out, batch)
 
-
         ### TEACHER NETWORK ###
         teach_feat = self.teacher.backbone(img)
         teach_fpn_feat = self.teacher.fpn(teach_feat)
-
-        #Extract Head Conv towers outputs
-        teach_int_head_out = []
-        for feat, cls_convs in zip(teach_fpn_feat, self.teacher.head.cls_convs):
-            for conv in cls_convs:
-                feat = conv(feat)
-            teach_int_head_out.append(feat)
-
-        #Extract Head cls outputs
         teach_head_out = self.teacher.head(teach_fpn_feat)
-        teach_cls_preds, teach_reg_preds = teach_head_out.split(
-            [20, 4 * (7 + 1)], dim=-1
-        )
-
-        #Extract only the output realative to the last continually learned classes
-        if self.n_last_learned_classes > 0:
-            teach_cls_preds_new_classes = teach_cls_preds[:, :, self.n_val_classes - self.n_last_learned_classes - 1:self.n_val_classes - 1]
-
-        #To compute total Cls loss, proved ineffective in experiments
-        teach_cls_preds = teach_cls_preds[:, :, :self.n_val_classes - 1]
-        if self.n_val_classes < 20:
-            teach_cls_preds1 = teach_cls_preds[:, :, self.n_val_classes:]
-            teach_cls_preds = torch.cat((teach_cls_preds, teach_cls_preds1), dim=-1)
-
 
         ### KNOWLEDGE DISTILLATION LOSS ###
         mse_loss = nn.MSELoss()
-        dist_loss_cls = mse_loss(stud_cls_preds, teach_cls_preds) #(Total cls loss, proved ineffective in experiments)
-
-        #Compute an additional loss if the number of last continually learned classes is greater than 0
-        dist_loss_incr_cls = 0
-        if self.n_last_learned_classes > 0:
-            dist_loss_incr_cls = mse_loss(stud_cls_preds_new_classes, teach_cls_preds_new_classes)
 
         #Compute the distillation loss for the Head Conv Tower outputs
-        dist_loss_int = 0
-        for tensor1, tensor2 in zip(stud_int_head_out, teach_int_head_out):
-            dist_loss_int += mse_loss(tensor1, tensor2)
+        dist_loss = 0
+        for tensor1, tensor2 in zip(stud_feat, teach_feat):
+            dist_loss += mse_loss(tensor1, tensor2)
 
         ### LOGGING ###
         if self.global_step % self.cfg.log.interval == 0:
@@ -178,18 +125,14 @@ class DistTrainingTask(LightningModule):
                     loss_states[loss_name].mean().item(),
                     self.global_step,
                 )
-            self.scalar_summary("Train_loss/" + "dist_loss_cls", "Train", dist_loss_cls, self.global_step)
-            self.scalar_summary("Train_loss/" + "dist_loss_int", "Train", dist_loss_int, self.global_step)
-            self.scalar_summary("Train_loss/" + "dist_loss_incr_cls", "Train", dist_loss_incr_cls, self.global_step)
+            self.scalar_summary("Train_loss/" + "dist_loss_cls", "Train", dist_loss, self.global_step)
 
-            log_msg += "dist_loss_cls:{:.4f}| ".format(dist_loss_cls)
-            log_msg += "dist_loss_int:{:.4f}| ".format(dist_loss_int)
-            log_msg += "dist_loss_incr_cls:{:.4f}| ".format(dist_loss_incr_cls)
+            log_msg += "dist_loss:{:.4f}| ".format(dist_loss)
 
-            #self.log('dist_loss', dist_loss_int, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+            self.log('dist_loss', dist_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
             self.logger.info(log_msg)
 
-        total_loss = loss + 0.10*dist_loss_int + 0.15*dist_loss_cls + 0.75*dist_loss_incr_cls #(self.n_val_classes-1)*dist_loss_cls
+        total_loss = loss + dist_loss
         self.scalar_summary("Train_loss/" + "total_loss", "Train", total_loss, self.global_step)
         return total_loss
 
