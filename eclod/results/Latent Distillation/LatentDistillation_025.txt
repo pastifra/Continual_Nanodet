@@ -1,0 +1,143 @@
+##### LEARNING STREAM #####
+- task 0: train on first 15 classes, test on 15 classes
+- task 1: train on class n°16, test on 16 classes
+- task 2: train on class n°17, test on 17 classes
+- task 3: train on class n°18, test on 18 classes
+- task 4: train on class n°19, test on 19 classes
+- task 5: train on class n°20, test on 20 classes
+
+##### CL STRATEGY #####
+LATENT KNOWLEDGE DISTILLATION
+DISTILLATION LOSS = Mean Squared Error on classification head
+TEMPERATURE = 1
+FREEZING = All backbone layers are frozen
+
+##### NETWORK #####
+model: NanoDet Plus without Auxiliary Training Module
+input size: 320x320
+total number of parameters: 1.2M
+
+############# TASK 0 ##############
+4423 training images
+Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.319
+Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.527
+Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.328
+Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.023
+Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.127
+Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.432
+
+| class       | AP50   | mAP   | class     | AP50   | mAP   |
+|:------------|:-------|:------|:----------|:-------|:------|
+| aeroplane   | 59.1   | 36.3  | bicycle   | 62.9   | 39.7  |
+| bird        | 40.9   | 21.3  | boat      | 30.3   | 14.2  |
+| bottle      | 18.5   | 8.0   | bus       | 56.1   | 41.5  |
+| car         | 62.5   | 41.2  | cat       | 68.9   | 45.2  |
+| chair       | 27.7   | 12.9  | cow       | 49.8   | 27.3  |
+| diningtable | 53.1   | 34.8  | dog       | 61.2   | 37.4  |
+| horse       | 70.5   | 44.6  | motorbike | 66.3   | 40.6  |
+| person      | 62.0   | 33.4  |           |        |       |
+
+############# TASK 1 ##############
+273 training images
+Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.189
+Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.377
+Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.165
+Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.008
+Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.064
+Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.260
+
+| class       | AP50   | mAP   | class       | AP50   | mAP   |
+|:------------|:-------|:------|:------------|:-------|:------|
+| aeroplane   | 48.2   | 22.4  | bicycle     | 48.8   | 26.4  |
+| bird        | 26.5   | 11.8  | boat        | 21.1   | 8.2   |
+| bottle      | 4.2    | 1.5   | bus         | 46.3   | 27.1  |
+| car         | 46.3   | 27.0  | cat         | 56.7   | 29.8  |
+| chair       | 16.5   | 6.4   | cow         | 30.6   | 12.6  |
+| diningtable | 43.5   | 24.4  | dog         | 50.4   | 26.4  |
+| horse       | 58.2   | 28.0  | motorbike   | 51.6   | 27.1  |
+| person      | 49.2   | 20.2  | pottedplant | 5.5    | 2.8   |
+
+############# TASK 2 #############
+Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.134
+Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.266
+Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.121
+Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.006
+Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.035
+Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.189
+
+| class       | AP50   | mAP   | class       | AP50   | mAP   |
+|:------------|:-------|:------|:------------|:-------|:------|
+| aeroplane   | 40.5   | 20.5  | bicycle     | 34.4   | 17.7  |
+| bird        | 12.6   | 6.3   | boat        | 13.2   | 4.9   |
+| bottle      | 2.6    | 0.8   | bus         | 44.1   | 26.7  |
+| car         | 38.1   | 22.1  | cat         | 46.9   | 26.4  |
+| chair       | 12.5   | 4.3   | cow         | 12.2   | 5.5   |
+| diningtable | 33.3   | 16.0  | dog         | 35.5   | 18.6  |
+| horse       | 48.0   | 22.6  | motorbike   | 39.0   | 19.7  |
+| person      | 34.8   | 13.5  | pottedplant | 1.4    | 0.5   |
+| sheep       | 2.6    | 1.1   |             |        |       |
+
+############# TASK 3 #############
+372 training images
+Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.068
+Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.168
+Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.044
+Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.004
+Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.023
+Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.092
+
+| class       | AP50   | mAP   | class       | AP50   | mAP   |
+|:------------|:-------|:------|:------------|:-------|:------|
+| aeroplane   | 21.6   | 8.0   | bicycle     | 22.3   | 10.1  |
+| bird        | 10.0   | 3.8   | boat        | 5.6    | 1.3   |
+| bottle      | 1.0    | 0.4   | bus         | 27.3   | 11.3  |
+| car         | 22.5   | 10.3  | cat         | 39.5   | 17.7  |
+| chair       | 6.7    | 2.6   | cow         | 10.7   | 4.4   |
+| diningtable | 24.3   | 10.6  | dog         | 33.6   | 13.3  |
+| horse       | 26.3   | 8.5   | motorbike   | 23.6   | 9.7   |
+| person      | 17.4   | 5.4   | pottedplant | 1.6    | 0.5   |
+| sheep       | 1.8    | 0.8   | sofa        | 5.7    | 3.2   |
+
+############# TASK 4 #############
+263 training images
+Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.041
+Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.095
+Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.031
+Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.001
+Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.009
+Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.059
+
+| class       | AP50   | mAP   | class       | AP50   | mAP   |
+|:------------|:-------|:------|:------------|:-------|:------|
+| aeroplane   | 28.6   | 13.5  | bicycle     | 14.9   | 7.9   |
+| bird        | 7.2    | 2.1   | boat        | 1.6    | 0.3   |
+| bottle      | 0.6    | 0.2   | bus         | 6.1    | 4.3   |
+| car         | 6.1    | 4.4   | cat         | 22.5   | 9.3   |
+| chair       | 4.0    | 1.3   | cow         | 2.0    | 0.9   |
+| diningtable | 16.4   | 6.2   | dog         | 29.4   | 12.2  |
+| horse       | 4.0    | 0.9   | motorbike   | 13.9   | 5.7   |
+| person      | 14.1   | 4.9   | pottedplant | 0.7    | 0.2   |
+| sheep       | 1.0    | 0.4   | sofa        | 1.1    | 0.5   |
+| train       | 6.1    | 3.2   |             |        |       |
+
+############# TASK 5 #############
+279 training images
+Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.023
+Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.052
+Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.019
+Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.001
+Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.007
+Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.031
+
+| class       | AP50   | mAP   | class       | AP50   | mAP   |
+|:------------|:-------|:------|:------------|:-------|:------|
+| aeroplane   | 6.9    | 2.5   | bicycle     | 5.6    | 2.0   |
+| bird        | 3.8    | 1.2   | boat        | 0.0    | 0.0   |
+| bottle      | 0.0    | 0.0   | bus         | 5.0    | 3.3   |
+| car         | 3.5    | 2.2   | cat         | 18.7   | 9.3   |
+| chair       | 0.7    | 0.3   | cow         | 3.4    | 1.7   |
+| diningtable | 3.9    | 1.5   | dog         | 25.4   | 11.3  |
+| horse       | 2.7    | 1.0   | motorbike   | 2.7    | 1.0   |
+| person      | 6.1    | 2.3   | pottedplant | 0.6    | 0.2   |
+| sheep       | 0.6    | 0.3   | sofa        | 0.9    | 0.4   |
+| train       | 0.9    | 0.4   | tvmonitor   | 11.4   | 6.2   |
