@@ -237,6 +237,105 @@ class DepthwiseConvModule(nn.Module):
             elif layer_name == "act" and self.activation:
                 x = self.act(x)
         return x
+    
+class DepthwiseConvDropModule(nn.Module):
+    def __init__(
+        self,
+        in_channels,
+        out_channels,
+        kernel_size,
+        stride=1,
+        padding=0,
+        dilation=1,
+        bias="auto",
+        norm_cfg=dict(type="BN"),
+        activation="ReLU",
+        inplace=True,
+        order=("depthwise", "dwnorm", "act", "pointwise", "pwnorm", "act"),
+    ):
+        super(DepthwiseConvDropModule, self).__init__()
+        assert activation is None or isinstance(activation, str)
+        self.activation = activation
+        self.inplace = inplace
+        self.order = order
+        assert isinstance(self.order, tuple) and len(self.order) == 6
+        assert set(order) == {
+            "depthwise",
+            "dwnorm",
+            "act",
+            "pointwise",
+            "pwnorm",
+            "act",
+        }
+
+        self.with_norm = norm_cfg is not None
+        # if the conv layer is before a norm layer, bias is unnecessary.
+        if bias == "auto":
+            bias = False if self.with_norm else True
+        self.with_bias = bias
+
+        if self.with_norm and self.with_bias:
+            warnings.warn("ConvModule has norm and bias at the same time")
+
+        # build convolution layer
+        self.depthwise = nn.Conv2d(
+            in_channels,
+            in_channels,
+            kernel_size,
+            stride=stride,
+            padding=padding,
+            dilation=dilation,
+            groups=in_channels,
+            bias=bias,
+        )
+        self.pointwise = nn.Conv2d(
+            in_channels, out_channels, kernel_size=1, stride=1, padding=0, bias=bias
+        )
+
+        # export the attributes of self.conv to a higher level for convenience
+        self.in_channels = self.depthwise.in_channels
+        self.out_channels = self.pointwise.out_channels
+        self.kernel_size = self.depthwise.kernel_size
+        self.stride = self.depthwise.stride
+        self.padding = self.depthwise.padding
+        self.dilation = self.depthwise.dilation
+        self.transposed = self.depthwise.transposed
+        self.output_padding = self.depthwise.output_padding
+
+        # build normalization layers
+        if self.with_norm:
+            # norm layer is after conv layer
+            _, self.dwnorm = build_norm_layer(norm_cfg, in_channels)
+            _, self.pwnorm = build_norm_layer(norm_cfg, out_channels)
+
+        # build activation layer
+        if self.activation:
+            self.act = act_layers(self.activation)
+        # build dropout layer
+        self.drop = nn.Dropout2d(p=0.25)
+
+        # Use msra init by default
+        self.init_weights()
+
+    def init_weights(self):
+        if self.activation == "LeakyReLU":
+            nonlinearity = "leaky_relu"
+        else:
+            nonlinearity = "relu"
+        kaiming_init(self.depthwise, nonlinearity=nonlinearity)
+        kaiming_init(self.pointwise, nonlinearity=nonlinearity)
+        if self.with_norm:
+            constant_init(self.dwnorm, 1, bias=0)
+            constant_init(self.pwnorm, 1, bias=0)
+
+    def forward(self, x, norm=True):
+        for layer_name in self.order:
+            if layer_name != "act":
+                layer = self.__getattr__(layer_name)
+                x = layer(x)
+            elif layer_name == "act" and self.activation:
+                x = self.act(x)
+        return x
 
 
 class RepVGGConvModule(nn.Module):

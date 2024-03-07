@@ -63,8 +63,9 @@ model:
 data:
   train:
     name: CocoDataset
-    img_path: coco/train2017
-    ann_path: coco/annotations/instances_train2017.json
+    img_path: /media/data/Datasets/COCO/train2014
+    ann_path: /media/data/Datasets/COCO/annotations/instances_train2014.json
+    exp_names: ['bicycle']
     input_size: [320,320] #[w,h]
     keep_ratio: False
     pipeline:
@@ -81,8 +82,9 @@ data:
       normalize: [[103.53, 116.28, 123.675], [57.375, 57.12, 58.395]]
   val:
     name: CocoDataset
-    img_path: coco/val2017
-    ann_path: coco/annotations/instances_val2017.json
+    img_path: /media/data/Datasets/COCO/train2014
+    ann_path: /media/data/Datasets/COCO/annotations/instances_train2014.json
+    exp_names: ['bicycle']
     input_size: [320,320] #[w,h]
     keep_ratio: False
     pipeline:

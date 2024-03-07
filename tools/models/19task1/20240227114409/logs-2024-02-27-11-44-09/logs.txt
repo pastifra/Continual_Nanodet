@@ -1,0 +1,30 @@
+[NanoDet][02-27 11:44:09]INFO: Setting up data...
+[NanoDet][02-27 11:44:09]INFO: Creating model...
+[NanoDet][02-27 11:44:11]INFO: Starting testing...
+[NanoDet][02-27 11:45:00]INFO: 
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.160
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.278
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.159
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.008
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.054
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.218
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.225
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.313
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.330
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.034
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.184
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.414
+
+[NanoDet][02-27 11:45:00]INFO: 
+| class       | AP50   | mAP   | class       | AP50   | mAP   |
+|:------------|:-------|:------|:------------|:-------|:------|
+| aeroplane   | 31.8   | 16.9  | bicycle     | 10.9   | 5.8   |
+| bird        | 10.1   | 5.9   | boat        | 7.5    | 3.7   |
+| bottle      | 2.5    | 1.6   | bus         | 4.2    | 2.9   |
+| car         | 24.1   | 16.3  | cat         | 25.5   | 14.3  |
+| chair       | 1.7    | 0.9   | cow         | 12.6   | 6.7   |
+| diningtable | 48.1   | 29.4  | dog         | 38.0   | 22.3  |
+| horse       | 52.1   | 30.8  | motorbike   | 51.7   | 29.3  |
+| person      | 57.1   | 29.2  | pottedplant | 14.3   | 5.6   |
+| sheep       | 25.7   | 15.0  | sofa        | 37.6   | 21.6  |
+| train       | 55.6   | 35.8  | tvmonitor   | 44.1   | 26.4  |

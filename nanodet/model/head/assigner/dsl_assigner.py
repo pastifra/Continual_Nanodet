@@ -56,7 +56,6 @@ class DynamicSoftLabelAssigner(BaseAssigner):
 
         # assign 0 by default
         assigned_gt_inds = decoded_bboxes.new_full((num_bboxes,), 0, dtype=torch.long)
-
         prior_center = priors[:, :2]
         lt_ = prior_center[:, None] - gt_bboxes[:, :2]
         rb_ = gt_bboxes[:, 2:] - prior_center[:, None]

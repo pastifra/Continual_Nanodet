@@ -47,7 +47,7 @@ class CocoDetectionEvaluator:
         assert hasattr(dataset, "coco_api")
         self.class_names = dataset.class_names
         self.coco_api = dataset.coco_api
-        self.cat_ids = dataset.cat_ids
+        self.cat_ids = dataset.cat_ids #dataset.real_cat_ids
         self.metric_names = ["mAP", "AP_50", "AP_75", "AP_small", "AP_m", "AP_l"]
 
     def results2json(self, results):

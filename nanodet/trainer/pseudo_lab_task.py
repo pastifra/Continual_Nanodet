@@ -44,6 +44,9 @@ class PseudoLabelTrainingTask(LightningModule):
         super(PseudoLabelTrainingTask, self).__init__()
         self.cfg = cfg
         self.model = build_model(cfg.model)
+        self.teacher = build_model(cfg.model)
+        for param in self.teacher.parameters():
+            param.requires_grad = False
         self.evaluator = evaluator
         self.save_flag = -10
         self.log_style = "NanoDet"
@@ -73,10 +76,10 @@ class PseudoLabelTrainingTask(LightningModule):
 
         ### INFER NETWORK ###
 
-        feat = self.model.backbone(img)
-        fpn_feat = self.model.fpn(feat)
-        head_out = self.model.head(fpn_feat)
-        dets = self.model.head.post_process(head_out, batch)
+        feat = self.teacher.backbone(img)
+        fpn_feat = self.teacher.fpn(feat)
+        head_out = self.teacher.head(fpn_feat)
+        dets = self.teacher.head.post_process(head_out, batch)
 
         ### ADD PSEUDO LABELS TO TASK ###
         id = 0
@@ -95,7 +98,11 @@ class PseudoLabelTrainingTask(LightningModule):
             batch["gt_labels"][id] = np.append(batch["gt_labels"][id], np.array(labels))
             id += 1
 
-        ### NANODET LOSS ###
+        ### STUDENT MODEL ###
+        feat = self.model.backbone(img)
+        fpn_feat = self.model.fpn(feat)
+        head_out = self.model.head(fpn_feat)
+
         loss, loss_states = self.model.head.loss(head_out, batch)
 
         ### LOGGING ###

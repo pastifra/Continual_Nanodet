@@ -57,6 +57,7 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
         load_mosaic: bool = False,
         mode: str = "train",
         multi_scale: Optional[Tuple[float, float]] = None,
+        exp_names: Optional[str] = None,
     ):
         assert mode in ["train", "val", "test"]
         self.img_path = img_path
@@ -70,7 +71,7 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
         self.load_mosaic = load_mosaic
         self.multi_scale = multi_scale
         self.mode = mode
-
+        self.exp_names = exp_names
         self.data_info = self.get_data_info(ann_path)
 
     def __len__(self):

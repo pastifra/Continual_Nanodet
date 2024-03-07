@@ -16,6 +16,9 @@ import argparse
 import datetime
 import os
 import warnings
+import sys
+sys.path.append('/home/pasti/PycharmProjects/Continual_Nanodet/')
+
 
 import pytorch_lightning as pl
 import torch
@@ -73,7 +76,7 @@ def main(args):
     evaluator = build_evaluator(cfg.evaluator, val_dataset)
 
     logger.info("Creating model...")
-    task = DistTrainingTask(cfg, evaluator)
+    task = TrainingTask(cfg, evaluator)
 
     ckpt = torch.load(args.model)
     if "pytorch-lightning_version" not in ckpt:

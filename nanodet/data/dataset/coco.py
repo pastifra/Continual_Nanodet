@@ -40,12 +40,30 @@ class CocoDataset(BaseDataset):
          ...
         ]
         """
+        all_names = ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat',
+                'traffic light', 'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat',
+                'dog', 'horse', 'sheep', 'cow', 'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 
+                'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball', 
+                'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard', 'tennis racket', 
+                'bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple', 
+                'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 
+                'couch', 'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 
+                'keyboard', 'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 
+                'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush']
         self.coco_api = COCO(ann_path)
-        self.cat_ids = sorted(self.coco_api.getCatIds())
-        self.cat2label = {cat_id: i for i, cat_id in enumerate(self.cat_ids)}
-        self.cats = self.coco_api.loadCats(self.cat_ids)
+        #self.cat_ids = sorted(self.coco_api.getCatIds())
+        self.cat_ids = self.coco_api.getCatIds(catNms=self.exp_names)
+        self.all_cat_ids = self.coco_api.getCatIds(catNms=all_names)
+        print("Keeping only annotations of classes: ", self.exp_names)
+        image_ids = []
+        for cat_id in self.cat_ids:
+            image_ids.extend(self.coco_api.getImgIds(catIds=cat_id))
+        self.img_ids = list(set(image_ids))  # remove duplicates
+        print("Total images: ", len(self.img_ids))
+        self.cat2label = {cat_id: i for i, cat_id in enumerate(self.all_cat_ids)}
+        self.cats = self.coco_api.loadCats(self.all_cat_ids)
         self.class_names = [cat["name"] for cat in self.cats]
-        self.img_ids = sorted(self.coco_api.imgs.keys())
+        #self.img_ids = sorted(self.coco_api.imgs.keys())
         img_info = self.coco_api.loadImgs(self.img_ids)
         return img_info
 

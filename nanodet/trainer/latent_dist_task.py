@@ -1,17 +1,3 @@
-# Copyright 2021 RangiLyu.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import copy
 import json
 import os
@@ -39,9 +25,11 @@ class LatentDistTrainingTask(LightningModule):
 
     """
 
-    def __init__(self, cfg, evaluator=None):
+    def __init__(self, cfg, alpha, beta, evaluator=None):
         super(LatentDistTrainingTask, self).__init__()
         self.cfg = cfg
+        self.alpha = alpha
+        self.beta = beta
         self.model = build_model(cfg.model)
         self.teacher = build_model(cfg.model)
         #Freezing teacher network
@@ -50,14 +38,28 @@ class LatentDistTrainingTask(LightningModule):
         #Freezing backbone
         for param in self.model.backbone.parameters():
             param.requires_grad = False
+        #Unfreezing last layers of each stage of the backbone
+        '''
+        for param in self.model.backbone.stage3[3].parameters():
+            param.requires_grad = True
+        for param in self.model.backbone.stage4[2].parameters():
+            param.requires_grad = True
+        for param in self.model.backbone.stage4[1].parameters():
+            param.requires_grad = True
+        for param in self.model.backbone.stage4[0].parameters():
+            param.requires_grad = True
+        '''
         self.evaluator = evaluator
         self.save_flag = -10
         self.log_style = "NanoDet"
         self.weight_averager = None
-        self.n_val_classes = len(self.cfg.data.val.class_names) #Used for cls distillation
-        self.n_last_learned_classes = self.n_val_classes - 16 #Used for cls distillation
-        self.early_stop_callback = EarlyStopping(monitor='dist_loss', min_delta=0.00, patience=0, verbose=False,mode='max') #Early stopping callback for when the dist loss has reached its max
-
+        if self.cfg.data.train.name == "CocoDataset":
+            self.n_val_classes = len(self.cfg.data.val.exp_names)
+            self.n_classes = len(self.cfg.data.train.exp_names)
+        else:
+            self.n_val_classes = len(self.cfg.data.val.class_names) 
+            self.n_classes = len(self.cfg.data.train.class_names)
+        
     def _preprocess_batch_input(self, batch):
         batch_imgs = batch["img"]
         if isinstance(batch_imgs, list):
@@ -96,16 +98,13 @@ class LatentDistTrainingTask(LightningModule):
         #Extract Head cls outputs
         stud_head_out = self.model.head(stud_fpn_feat)
         stud_cls_preds, stud_reg_preds = stud_head_out.split(
-            [20, 4 * (7 + 1)], dim=-1
+            [self.cfg.model.arch.head.num_classes, 4 * (7 + 1)], dim=-1
         )
 
-        #Extract only the output realative to the last continually learned classes
-        if self.n_last_learned_classes > 0:
-            stud_cls_preds_new_classes = stud_cls_preds[:, :, self.n_val_classes - self.n_last_learned_classes - 1:self.n_val_classes - 1]
+        #To compute total Cls loss
+        stud_cls_preds = stud_cls_preds[:, :, :self.n_val_classes - self.n_classes]
 
-        #To compute total Cls loss, proved ineffective in experiments
-        stud_cls_preds = stud_cls_preds[:, :, :self.n_val_classes - 1]
-        if self.n_val_classes < 20:
+        if self.n_val_classes < self.cfg.model.arch.head.num_classes:
             stud_cls_preds1 = stud_cls_preds[:, :, self.n_val_classes:]
             stud_cls_preds = torch.cat((stud_cls_preds, stud_cls_preds1), dim=-1)
 
@@ -128,16 +127,12 @@ class LatentDistTrainingTask(LightningModule):
         #Extract Head cls outputs
         teach_head_out = self.teacher.head(teach_fpn_feat)
         teach_cls_preds, teach_reg_preds = teach_head_out.split(
-            [20, 4 * (7 + 1)], dim=-1
+            [self.cfg.model.arch.head.num_classes, 4 * (7 + 1)], dim=-1
         )
 
-        #Extract only the output realative to the last continually learned classes
-        if self.n_last_learned_classes > 0:
-            teach_cls_preds_new_classes = teach_cls_preds[:, :, self.n_val_classes - self.n_last_learned_classes - 1:self.n_val_classes - 1]
-
         #To compute total Cls loss
-        teach_cls_preds = teach_cls_preds[:, :, :self.n_val_classes - 1]
-        if self.n_val_classes < 20:
+        teach_cls_preds = teach_cls_preds[:, :, :self.n_val_classes - self.n_classes]
+        if self.n_val_classes < self.cfg.model.arch.head.num_classes:
             teach_cls_preds1 = teach_cls_preds[:, :, self.n_val_classes:]
             teach_cls_preds = torch.cat((teach_cls_preds, teach_cls_preds1), dim=-1)
 
@@ -145,11 +140,6 @@ class LatentDistTrainingTask(LightningModule):
         ### KNOWLEDGE DISTILLATION LOSS ###
         mse_loss = nn.MSELoss()
         dist_loss_cls = mse_loss(stud_cls_preds, teach_cls_preds) #(Total cls loss, proved ineffective in experiments)
-
-        #Compute an additional loss if the number of last continually learned classes is greater than 0
-        dist_loss_incr_cls = 0
-        if self.n_last_learned_classes > 0:
-            dist_loss_incr_cls = mse_loss(stud_cls_preds_new_classes, teach_cls_preds_new_classes)
 
         #Compute the distillation loss for the Head Conv Tower outputs
         dist_loss_int = 0
@@ -184,15 +174,13 @@ class LatentDistTrainingTask(LightningModule):
                 )
             self.scalar_summary("Train_loss/" + "dist_loss_cls", "Train", dist_loss_cls, self.global_step)
             self.scalar_summary("Train_loss/" + "dist_loss_int", "Train", dist_loss_int, self.global_step)
-            self.scalar_summary("Train_loss/" + "dist_loss_incr_cls", "Train", dist_loss_incr_cls, self.global_step)
 
             log_msg += "dist_loss_cls:{:.4f}| ".format(dist_loss_cls)
             log_msg += "dist_loss_int:{:.4f}| ".format(dist_loss_int)
-            log_msg += "dist_loss_incr_cls:{:.4f}| ".format(dist_loss_incr_cls)
 
             self.logger.info(log_msg)
 
-        total_loss = loss + 0.25*dist_loss_cls +0.25*dist_loss_int + 0.25*dist_loss_incr_cls #(self.n_val_classes-1)*dist_loss_cls
+        total_loss = loss + self.alpha*dist_loss_cls + self.beta*dist_loss_int
         self.scalar_summary("Train_loss/" + "total_loss", "Train", total_loss, self.global_step)
         return total_loss
 
@@ -233,7 +221,7 @@ class LatentDistTrainingTask(LightningModule):
         """
         Called at the end of the validation epoch with the
         outputs of all validation steps.Evaluating results
-        and save best model.
+        and save best models.
         Args:
             validation_step_outputs: A list of val outputs
 
@@ -251,7 +239,7 @@ class LatentDistTrainingTask(LightningModule):
                 all_results, self.cfg.save_dir, rank=self.local_rank
             )
             metric = eval_results[self.cfg.evaluator.save_key]
-            # save best model
+            # save best models
             if metric > self.save_flag:
                 self.save_flag = metric
                 best_save_path = os.path.join(self.cfg.save_dir, "model_best")
@@ -272,7 +260,7 @@ class LatentDistTrainingTask(LightningModule):
 
             else:
                 warnings.warn(
-                    "Warning! Save_key is not in eval results! Only save model last!"
+                    "Warning! Save_key is not in eval results! Only save models last!"
                 )
             self.logger.log_metrics(eval_results, self.current_epoch + 1)
         else:
@@ -351,6 +339,7 @@ class LatentDistTrainingTask(LightningModule):
             using_lbfgs: True if the matching optimizer is lbfgs
         """
         # warm up lr
+
         if self.trainer.global_step <= self.cfg.schedule.warmup.steps:
             if self.cfg.schedule.warmup.name == "constant":
                 k = self.cfg.schedule.warmup.ratio
@@ -389,7 +378,7 @@ class LatentDistTrainingTask(LightningModule):
 
     @rank_zero_only
     def save_model_state(self, path):
-        self.logger.info("Saving model to {}".format(path))
+        self.logger.info("Saving models to {}".format(path))
         state_dict = (
             self.weight_averager.state_dict()
             if self.weight_averager
@@ -431,7 +420,7 @@ class LatentDistTrainingTask(LightningModule):
             if len(avg_params) != len(self.model.state_dict()):
                 self.logger.info(
                     "Weight averaging is enabled but average state does not"
-                    "match the model"
+                    "match the models"
                 )
             else:
                 self.weight_averager = build_weight_averager(
@@ -441,4 +430,4 @@ class LatentDistTrainingTask(LightningModule):
                 self.logger.info("Loaded average state from checkpoint.")
 
     def on_save_checkpoint(self, checkpoint: Dict[str, Any]) -> None:
-        checkpoint['model'] = self.model.state_dict()
+        checkpoint['models'] = self.model.state_dict()

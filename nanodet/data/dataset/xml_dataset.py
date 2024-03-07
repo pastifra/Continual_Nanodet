@@ -105,8 +105,13 @@ class XMLDataset(CocoDataset):
                 for cat in categories:
                     if category == cat["name"]:
                         cat_id = cat["id"]
+                if xml_name == "2011_006777.xml":
+                    ymin = 281
+                elif xml_name == "2011_003353.xml":
+                    ymin = 46
+                else:
+                    ymin = int(_object.find("bndbox").find("ymin").text)
                 xmin = int(_object.find("bndbox").find("xmin").text)
-                ymin = int(_object.find("bndbox").find("ymin").text)
                 xmax = int(_object.find("bndbox").find("xmax").text)
                 ymax = int(_object.find("bndbox").find("ymax").text)
                 w = xmax - xmin
