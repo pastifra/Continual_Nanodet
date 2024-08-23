@@ -108,11 +108,13 @@ The Latent Distillation implementaion code is in ```\nanodet\trainer\latent_dist
 If you find this project useful in your research, please add a star and cite us 😊 
 
 ```BibTeX
-@misc{Latent Distillation for Continual Object Detection on the Edge,
-    title={},
-    author={},
-    year={2024}
+@inproceedings{pastiLD,
+  title={Latent Distillation for Continual Object Detection at the edge.},
+  author={Pasti, Francesco and Ceccon, Marina and Dalle Pezze, Davide and Paissan, Francesco and Farella, Elisabetta and Susto, Gian Antonio and Bellotto, Nicola},
+  booktitle={European conference on computer vision},
+  year={2024},
 }
+
 ```
 
 ****
