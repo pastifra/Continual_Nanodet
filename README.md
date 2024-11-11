@@ -8,7 +8,7 @@
 </div>
 
 * ⚡ **Fast CL training**: Teacher 1.2M parameters + Student 398K parameters (with frozen backbone) making training on new CL tasks super fast and efficient
-* 🪡 **Microcontroller (MCU) tailored**: The trained model is easlily deployable on MCUs requiring just 1.2 MB (int8 econded weights)
+* 🪡 **Microcontroller (MCU) tailored**: The trained model is easily deployable on MCUs requiring just 1.2 MB (int8 econded weights)
 
 ****
 
@@ -16,15 +16,15 @@
 <div align="center">
 <img src="imgs/LatentDistillationScheme.png" width="700">
 </div>
-We propose and implement a new approach for Continual Learning of an Object Detector (CLOD) on the Edge by adressing two issues found in the literature:
+We propose and implement a new approach for Continual Learning of an Object Detector (CLOD) on the Edge by addressing two issues found in the literature:
 - Many CLOD approaches use Distillation or Replay based techniques that are computationally inefficient and require long training times
-- The studied edge architecture are still too big and inefficient to run on really constrained edge devices such as an MCU
+- The studied edge architectures are still too big and inefficient to run on really constrained edge devices such as an MCU
 
-We adress the first issue by proposing Latent Distillation (LD).
+We address the first issue by proposing Latent Distillation (LD).
 LD, as depicted in the figure above, relies on a frozen copy of the backbone shared between the teacher and the student network. This makes the batch inference as well as the backbropagation on the student network significantly faster during training.
 
-We adress the second issue by implementing our approach on Nanodet-plus a super fast and lightweight anchor-free object detector.
-We use Nanodet-plus without the weight-averaging module and the auxiliary heads. This allows us to have a teacher network of 1.2M parameters and a student network with only 399K to train (considering a full frozen backbone).
+We address the second issue by implementing our approach on Nanodet-plus a super fast and lightweight anchor-free object detector.
+We use Nanodet-plus without the weight-averaging module and the auxiliary heads. This allows us to have a teacher network of 1.2M parameters and a student network with only 399K to train (considering a fully frozen backbone).
 
 For more details, please refer to our [paper](#citation)
 
@@ -50,7 +50,7 @@ To do so, refer to [nanodetDocs/README.md](nanodetDocs/README.md)
 
 ## Setup Config file
 
-Before training you need to setup the training cfg file!
+Before training you need to set up the training cfg file!
 
 To do so:
 - Open [cfg/VOC.yml](eclod/cfg/VOC.yml)
@@ -66,7 +66,7 @@ To do so please refer to [nanodetDocs/README.md](nanodetDocs/README.md) and upda
 For now, CL scenarios are created correctly for xml datasets such as VOC.
 COCO support coming soon!
 
-## Continual Trainining
+## Continual Training
 We define some CL scenarios to train the model:
 - **15p5** : The model is trained on the first 15 classes of VOC at task 0, on the subsequent 5 at task 1
 - **10p10** : The model is trained on the first 10 classes of VOC at task 0, on the subsequent 10 at task 1
