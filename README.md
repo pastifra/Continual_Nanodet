@@ -111,7 +111,7 @@ If you find this project useful in your research, please add a star and cite us 
 @inproceedings{pasti2024LatentDistillation,
   title={Latent Distillation for Continual Object Detection at the edge.},
   author={Pasti, Francesco and Ceccon, Marina and Dalle Pezze, Davide and Paissan, Francesco and Farella, Elisabetta and Susto, Gian Antonio and Bellotto, Nicola},
-  booktitle={ECCV 2024 Workshops},
+  booktitle={Workshop on Computational Aspects of Deep Learning, European Conference on Computer Vision (ECCV)},
   year={2024},
   publisher={Springer}
 }
