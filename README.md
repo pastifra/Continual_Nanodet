@@ -64,7 +64,7 @@ To do so please refer to [nanodetDocs/README.md](nanodetDocs/README.md) and upda
 ### Remarks
 
 For now, CL scenarios are created correctly for xml datasets such as VOC.
-COCO support coming soon!
+Update: COCO format is also be supported now!
 
 ## Continual Training
 We define some CL scenarios to train the model:
